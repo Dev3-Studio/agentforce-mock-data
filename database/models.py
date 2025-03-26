@@ -130,3 +130,18 @@ class SimulationEvent(Base):
     # Relationships
     simulation_run = relationship("SimulationRun", back_populates="events")
     event = relationship("MiningEvent", back_populates="simulation_events")
+
+
+class SimulationResult(Base):
+
+    __tablename__ = "simulation_results"
+
+    result_id = Column(Integer, primary_key=True)
+    run_id = Column(Integer, ForeignKey("simulation_runs.run_id"))
+    year = Column(Integer)
+    simulation_number = Column(Integer)
+    metric_name = Column(String)
+    metric_value = Column(Float)
+
+    # Relationships
+    simulation_run = relationship("SimulationRun", back_populates="results")
