@@ -158,3 +158,19 @@ class ScenarioDefinition(Base):
 
     # Relationships
     events = relationship("ScenarioEvent", back_populates="scenario")
+
+
+class ScenarioEvent(Base):
+
+    __tablename__ = "scenario_events"
+
+    scenario_event_id = Column(Integer, primary_key=True)
+    scenario_id = Column(Integer, ForeignKey("scenario_definitions.scenario_id"))
+    event_id = Column(Integer, ForeignKey("mining_events.event_id"))
+    start_year = Column(Integer)
+    probability_override = Column(Float)
+    event_parameters = Column(Text)  # JSON object
+
+    # Relationships
+    scenario = relationship("ScenarioDefinition", back_populates="events")
+    event = relationship("MiningEvent", back_populates="scenario_events")
