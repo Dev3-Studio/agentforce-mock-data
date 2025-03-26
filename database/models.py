@@ -113,3 +113,20 @@ class SimulationRun(Base):
     mine = relationship("Mine", back_populates="simulation_runs")
     events = relationship("SimulationEvent", back_populates="simulation_run")
     results = relationship("SimulationResult", back_populates="simulation_run")
+
+
+class SimulationEvent(Base):
+
+    __tablename__ = "simulation_events"
+
+    sim_event_id = Column(Integer, primary_key=True)
+    run_id = Column(Integer, ForeignKey("simulation_runs.run_id"))
+    event_id = Column(Integer, ForeignKey("mining_events.event_id"))
+    simulation_number = Column(Integer)
+    start_year = Column(Integer)
+    end_year = Column(Integer)
+    actual_impact_values = Column(Text)  # JSON object
+
+    # Relationships
+    simulation_run = relationship("SimulationRun", back_populates="events")
+    event = relationship("MiningEvent", back_populates="simulation_events")
