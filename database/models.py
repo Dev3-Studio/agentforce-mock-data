@@ -94,3 +94,22 @@ class EventImpact(Base):
 
     # Relationships
     event = relationship("MiningEvent", back_populates="impacts")
+
+
+class SimulationRun(Base):
+
+    __tablename__ = "simulation_runs"
+
+    run_id = Column(Integer, primary_key=True)
+    mine_id = Column(Integer, ForeignKey("mines.mine_id"))
+    simulation_name = Column(String)
+    num_years = Column(Integer)
+    num_simulations = Column(Integer)
+    random_seed = Column(Integer)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    description = Column(Text)
+
+    # Relationships
+    mine = relationship("Mine", back_populates="simulation_runs")
+    events = relationship("SimulationEvent", back_populates="simulation_run")
+    results = relationship("SimulationResult", back_populates="simulation_run")
