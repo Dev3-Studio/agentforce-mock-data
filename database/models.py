@@ -56,3 +56,21 @@ class SustainabilityParameter(Base):
     mine = relationship("Mine", back_populates="parameters")
 
 
+class MiningEvent(Base):
+
+    __tablename__ = "mining_events"
+
+    event_id = Column(Integer, primary_key=True)
+    event_name = Column(String)
+    event_category = Column(String)
+    event_description = Column(Text)
+    typical_duration = Column(Integer)
+    duration_variance = Column(Float)
+    prerequisite_events = Column(Text)  # JSON array
+    mutually_exclusive_events = Column(Text)  # JSON array
+    probability_function = Column(Text)
+
+    # Relationships
+    impacts = relationship("EventImpact", back_populates="event")
+    simulation_events = relationship("SimulationEvent", back_populates="event")
+    scenario_events = relationship("ScenarioEvent", back_populates="event")
