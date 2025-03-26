@@ -145,3 +145,16 @@ class SimulationResult(Base):
 
     # Relationships
     simulation_run = relationship("SimulationRun", back_populates="results")
+
+
+class ScenarioDefinition(Base):
+
+    __tablename__ = "scenario_definitions"
+
+    scenario_id = Column(Integer, primary_key=True)
+    scenario_name = Column(String)
+    scenario_description = Column(Text)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    # Relationships
+    events = relationship("ScenarioEvent", back_populates="scenario")
