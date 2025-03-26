@@ -2,16 +2,25 @@
 
 from datetime import datetime
 
-from sqlalchemy import (Column, DateTime, Float, ForeignKey, Integer, MetaData,
-                        String, Text)
+from sqlalchemy import (
+    Column,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    MetaData,
+    String,
+    Text,
+)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
 Base = declarative_base()
 
+
 class Mine(Base):
 
-    __tablename__ = 'mines'
+    __tablename__ = "mines"
 
     mine_id = Column(Integer, primary_key=True)
     mine_name = Column(String, nullable=False)
@@ -32,15 +41,18 @@ class Mine(Base):
     parameters = relationship("SustainabilityParameter", back_populates="mine")
     simulation_runs = relationship("SimulationRun", back_populates="mine")
 
+
 class SustainabilityParameter(Base):
 
     __tablename__ = "sustainability_parameters"
 
     param_id = Column(Integer, primary_key=True)
-    mine_id = Column(Integer, ForeignKey('mines.mine_id'))
+    mine_id = Column(Integer, ForeignKey("mines.mine_id"))
     parameter_category = Column(String)
     parameter_name = Column(String)
     parameter_value = Column(Text)
-    
+
     # Relationships
     mine = relationship("Mine", back_populates="parameters")
+
+
