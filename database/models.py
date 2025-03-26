@@ -31,3 +31,16 @@ class Mine(Base):
     # Relationships
     parameters = relationship("SustainabilityParameter", back_populates="mine")
     simulation_runs = relationship("SimulationRun", back_populates="mine")
+
+class SustainabilityParameter(Base):
+
+    __tablename__ = "sustainability_parameters"
+
+    param_id = Column(Integer, primary_key=True)
+    mine_id = Column(Integer, ForeignKey('mines.mine_id'))
+    parameter_category = Column(String)
+    parameter_name = Column(String)
+    parameter_value = Column(Text)
+    
+    # Relationships
+    mine = relationship("Mine", back_populates="parameters")
