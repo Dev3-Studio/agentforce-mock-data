@@ -74,3 +74,23 @@ class MiningEvent(Base):
     impacts = relationship("EventImpact", back_populates="event")
     simulation_events = relationship("SimulationEvent", back_populates="event")
     scenario_events = relationship("ScenarioEvent", back_populates="event")
+
+
+class EventImpact(Base):
+
+    __tablename__ = "event_impacts"
+
+    impact_id = Column(Integer, primary_key=True)
+    event_id = Column(Integer, ForeignKey("mining_events.event_id"))
+    parameter_category = Column(String)
+    parameter_name = Column(String)
+    impact_type = Column(String)
+    impact_mean = Column(Float)
+    impact_std_dev = Column(Float)
+    impact_distribution = Column(String)
+    recovery_rate_mean = Column(Float)
+    recovery_rate_std_dev = Column(Float)
+    max_recovery_percentage = Column(Float)
+
+    # Relationships
+    event = relationship("MiningEvent", back_populates="impacts")
