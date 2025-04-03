@@ -146,14 +146,14 @@ class SustainabilityParameterGenerator:
         # Return config if exists, otherwise use default
         return configs.get((category, parameter), {"distribution": "normal", "mean": 100, "std": 20})
 
-    def generate_parameter_data(self, mine_ids: List[int], start_date: datetime.datetime,
-                                end_date: datetime.datetime, freq: str = 'D',
+    def generate_parameter_data(self, equipment_ids: List[int], start_date: datetime.datetime,
+                                end_date: datetime.datetime, freq: str = 'D', 
                                 categories: Optional[List[str]] = None) -> pd.DataFrame:
         """
-        Generate sustainability parameter data for specified mines over a time period
+        Generate sustainability parameter data for specified equipment over a time period
 
         Args:
-            mine_ids: List of mine IDs to generate data for
+            equipment_ids: List of equipment IDs to generate data for
             start_date: Start date for the time series
             end_date: End date for the time series
             freq: Frequency of measurements (D=daily, H=hourly, etc.)
@@ -176,7 +176,7 @@ class SustainabilityParameterGenerator:
         data = []
         param_id = 1
 
-        for mine_id in mine_ids:
+        for equipment_id in equipment_ids:
             for category in categories:
                 parameters = self.PARAMETER_CATEGORIES[category]
 
@@ -199,7 +199,7 @@ class SustainabilityParameterGenerator:
                     for i, date in enumerate(date_range):
                         data.append({
                             "param_id": param_id,
-                            "mine_id": mine_id,
+                            "equipment_id": equipment_id,
                             "parameter_category": category,
                             "parameter_name": param_name,
                             "parameter_value": str(round(values[i], 3)),
@@ -263,10 +263,10 @@ if __name__ == "__main__":
     # Generate data
     start_date = datetime.datetime(2024, 1, 1)
     end_date = datetime.datetime(2024, 1, 31)
-    mine_ids = [1001, 1002, 1003]
+    equipment_ids = [1001, 1002, 1003]
 
     data = generator.generate_parameter_data(
-        mine_ids=mine_ids,
+        equipment_ids=equipment_ids,
         start_date=start_date,
         end_date=end_date,
         freq='D',
