@@ -59,13 +59,14 @@ class SustainabilityParameter(Base):
     __tablename__ = "sustainability_parameters"
 
     param_id = Column(Integer, primary_key=True)
-    mine_id = Column(Integer, ForeignKey("mines.mine_id"))
+    equipment_id = Column(Integer, ForeignKey("equipent.equipment_id"))
     parameter_category = Column(String)
     parameter_name = Column(String)
     parameter_value = Column(Text)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
-    mine = relationship("Mine", back_populates="parameters")
+    equipment = relationship("Equipment", back_populates="parameters")
 
 
 class MiningEvent(Base):
@@ -81,6 +82,7 @@ class MiningEvent(Base):
     prerequisite_events = Column(Text)  # JSON array
     mutually_exclusive_events = Column(Text)  # JSON array
     probability_function = Column(Text)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
     impacts = relationship("EventImpact", back_populates="event")
@@ -103,6 +105,7 @@ class EventImpact(Base):
     recovery_rate_mean = Column(Float)
     recovery_rate_std_dev = Column(Float)
     max_recovery_percentage = Column(Float)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
     event = relationship("MiningEvent", back_populates="impacts")
@@ -138,6 +141,7 @@ class SimulationEvent(Base):
     start_year = Column(Integer)
     end_year = Column(Integer)
     actual_impact_values = Column(Text)  # JSON object
+    created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
     simulation_run = relationship("SimulationRun", back_populates="events")
