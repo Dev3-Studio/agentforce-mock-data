@@ -59,7 +59,7 @@ class SustainabilityParameter(Base):
     __tablename__ = "sustainability_parameters"
 
     param_id = Column(Integer, primary_key=True)
-    equipment_id = Column(Integer, ForeignKey("equipent.equipment_id"))
+    equipment_id = Column(Integer, ForeignKey("equipment.equipment_id"))
     parameter_category = Column(String)
     parameter_name = Column(String)
     parameter_value = Column(Text)
