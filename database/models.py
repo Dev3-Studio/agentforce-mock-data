@@ -174,3 +174,79 @@ class ScenarioEvent(Base):
     # Relationships
     scenario = relationship("ScenarioDefinition", back_populates="events")
     event = relationship("MiningEvent", back_populates="scenario_events")
+
+
+class MachineryType(Base):
+    """
+    Defines types of machinery used in mining operations.
+    """
+
+    __tablename__ = "machinery_types"
+
+    type_id = Column(Integer, primary_key=True)
+    type_name = Column(String, nullable=False)
+    category = Column(String, nullable=False)  # Excavation, Hauling, Processing, etc.
+    description = Column(Text)
+    fuel_type = Column(String)  # Diesel, Electric, Hybrid, etc.
+    emissions_factor = Column(Float)  # CO2e per hour of operation
+    energy_consumption = Column(Float)  # Energy units per hour
+    water_usage = Column(Float)  # Water usage per hour (if applicable)
+    maintenance_interval = Column(Integer)  # Hours between maintenance
+
+    # Relationships
+    machinery_instances = relationship(
+        "MachineryInstance", back_populates="machinery_type"
+    )
+
+
+class MachineryInstance(Base):
+    """
+    Specific machinery instances owned by a mine.
+    """
+
+    __tablename__ = "machinery_instances"
+
+    instance_id = Column(Integer, primary_key=True)
+    mine_id = Column(Integer, ForeignKey("mines.mine_id"), nullable=False)
+    type_id = Column(Integer, ForeignKey("machinery_types.type_id"), nullable=False)
+    instance_name = Column(String, nullable=False)
+    operational_status = Column(String)  # Active, Maintenance, Retired, etc.
+    efficiency_factor = Column(
+        Float, default=1.0
+    )  # Relative to typical (1.0 = typical)
+    total_operating_hours = Column(Float, default=0.0)
+
+    # Relationships
+    mine = relationship("Mine", back_populates="machinery")
+    machinery_type = relationship("MachineryType", back_populates="machinery_instances")
+    simulation_results = relationship(
+        "MachinerySimulationResult", back_populates="machinery_instance"
+    )
+
+
+class MachinerySimulationResult(Base):
+    """
+    Results of machinery simulations.
+    """
+
+    __tablename__ = "machinery_simulation_results"
+
+    result_id = Column(Integer, primary_key=True)
+    run_id = Column(Integer, ForeignKey("simulation_runs.run_id"), nullable=False)
+    instance_id = Column(
+        Integer, ForeignKey("machinery_instances.instance_id"), nullable=False
+    )
+    simulation_number = Column(Integer, nullable=False)
+    simulation_date = Column(DateTime, nullable=False)
+    hours_operated = Column(Float)
+    fuel_consumed = Column(Float)
+    emissions_produced = Column(Float)
+    energy_consumed = Column(Float)
+    water_used = Column(Float)
+    operational_efficiency = Column(Float)
+
+    # Relationships
+    simulation_run = relationship("SimulationRun")
+    machinery_instance = relationship(
+        "MachineryInstance", back_populates="simulation_results"
+    )
