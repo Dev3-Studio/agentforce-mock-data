@@ -41,18 +41,6 @@ class Mine(Base):
     equipment = relationship("Equipment", back_populates="mine")
     simulation_runs = relationship("SimulationRun", back_populates="mine")
 
-class Equipment(Base):
-
-    __tablename__ = "equipment"
-
-    equipment_id = Column(Integer, primary_key=True)
-    equipment_name = Column(String, nullable=False)
-    equipment_type = Column(String, nullable=False)
-    equipment_start = Column(DateTime, nullable=False)
-    equipment_lifespan_months = Column(Integer)
-
-    # Relationships
-    parameters = relationship("SustainabilityParameter", back_populates="equipment")
 
 class SustainabilityParameter(Base):
 
