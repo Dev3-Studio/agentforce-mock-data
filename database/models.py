@@ -27,33 +27,46 @@ class Mine(Base):
     mine_type = Column(String, nullable=False)
     ore_type = Column(String, nullable=False)
     production_capacity = Column(Float)
-    mine_lifespan = Column(Integer)
+    mine_lifespan_months = Column(Integer)
     initial_footprint = Column(Float)
     maximum_footprint = Column(Float)
     pre_existing_biodiversity = Column(Float)
-    construction_start_year = Column(Integer)
-    production_start_year = Column(Integer)
-    peak_production_year = Column(Integer)
-    closure_start_year = Column(Integer)
+    construction_start = Column(DateTime)
+    production_start = Column(DateTime)
+    peak_production = Column(DateTime)
+    closure = Column(DateTime)
     post_closure_monitoring = Column(Integer)
 
     # Relationships
-    parameters = relationship("SustainabilityParameter", back_populates="mine")
+    equipment = relationship("Equipment", back_populates="mine")
     simulation_runs = relationship("SimulationRun", back_populates="mine")
 
+class Equipment(Base):
+
+    __tablename__ = "equipment"
+
+    equipment_id = Column(Integer, primary_key=True)
+    equipment_name = Column(String, nullable=False)
+    equipment_type = Column(String, nullable=False)
+    equipment_start = Column(DateTime, nullable=False)
+    equipment_lifespan_months = Column(Integer)
+
+    # Relationships
+    parameters = relationship("SustainabilityParameter", back_populates="equipment")
 
 class SustainabilityParameter(Base):
 
     __tablename__ = "sustainability_parameters"
 
     param_id = Column(Integer, primary_key=True)
-    mine_id = Column(Integer, ForeignKey("mines.mine_id"))
+    equipment_id = Column(Integer, ForeignKey("equipment.equipment_id"))
     parameter_category = Column(String)
     parameter_name = Column(String)
     parameter_value = Column(Text)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
-    mine = relationship("Mine", back_populates="parameters")
+    equipment = relationship("Equipment", back_populates="parameters")
 
 
 class MiningEvent(Base):
@@ -69,6 +82,7 @@ class MiningEvent(Base):
     prerequisite_events = Column(Text)  # JSON array
     mutually_exclusive_events = Column(Text)  # JSON array
     probability_function = Column(Text)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
     impacts = relationship("EventImpact", back_populates="event")
@@ -91,6 +105,7 @@ class EventImpact(Base):
     recovery_rate_mean = Column(Float)
     recovery_rate_std_dev = Column(Float)
     max_recovery_percentage = Column(Float)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
     event = relationship("MiningEvent", back_populates="impacts")
@@ -126,6 +141,7 @@ class SimulationEvent(Base):
     start_year = Column(Integer)
     end_year = Column(Integer)
     actual_impact_values = Column(Text)  # JSON object
+    created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
     simulation_run = relationship("SimulationRun", back_populates="events")
@@ -138,7 +154,7 @@ class SimulationResult(Base):
 
     result_id = Column(Integer, primary_key=True)
     run_id = Column(Integer, ForeignKey("simulation_runs.run_id"))
-    year = Column(Integer)
+    datetime = Column(DateTime)
     simulation_number = Column(Integer)
     metric_name = Column(String)
     metric_value = Column(Float)
@@ -167,7 +183,7 @@ class ScenarioEvent(Base):
     scenario_event_id = Column(Integer, primary_key=True)
     scenario_id = Column(Integer, ForeignKey("scenario_definitions.scenario_id"))
     event_id = Column(Integer, ForeignKey("mining_events.event_id"))
-    start_year = Column(Integer)
+    start = Column(DateTime)
     probability_override = Column(Float)
     event_parameters = Column(Text)  # JSON object
 
