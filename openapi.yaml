@@ -1,0 +1,805 @@
+openapi: 3.0.3
+info:
+  title: Mining Simulation API
+  description: API for managing mining simulations, equipment, sustainability parameters, and events
+  version: 1.0.0
+servers:
+  - url: https://api.miningsimulation.com/v1
+    description: Mining Simulation API server
+
+paths:
+  /mines:
+    get:
+      summary: Get a list of all mines
+      operationId: getMines
+      parameters:
+        - name: mine_type
+          in: query
+          description: Filter by mine type
+          schema:
+            type: string
+        - name: ore_type
+          in: query
+          description: Filter by ore type
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of mines
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Mine'
+    post:
+      summary: Create a new mine
+      operationId: createMine
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Mine'
+      responses:
+        '201':
+          description: Mine created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mine'
+
+  /mines/{mine_id}:
+    get:
+      summary: Get mine by ID
+      operationId: getMineById
+      parameters:
+        - name: mine_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Mine details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mine'
+        '404':
+          description: Mine not found
+    put:
+      summary: Update mine by ID
+      operationId: updateMine
+      parameters:
+        - name: mine_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Mine'
+      responses:
+        '200':
+          description: Mine updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mine'
+        '404':
+          description: Mine not found
+    delete:
+      summary: Delete mine by ID
+      operationId: deleteMine
+      parameters:
+        - name: mine_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Mine deleted
+        '404':
+          description: Mine not found
+
+  /mines/{mine_id}/equipment:
+    get:
+      summary: Get equipment for a mine
+      operationId: getMineEquipment
+      parameters:
+        - name: mine_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Equipment list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Equipment'
+    post:
+      summary: Add equipment to a mine
+      operationId: addMineEquipment
+      parameters:
+        - name: mine_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Equipment'
+      responses:
+        '201':
+          description: Equipment added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Equipment'
+
+  /equipment/{equipment_id}:
+    get:
+      summary: Get equipment by ID
+      operationId: getEquipmentById
+      parameters:
+        - name: equipment_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Equipment details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Equipment'
+        '404':
+          description: Equipment not found
+    put:
+      summary: Update equipment by ID
+      operationId: updateEquipment
+      parameters:
+        - name: equipment_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Equipment'
+      responses:
+        '200':
+          description: Equipment updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Equipment'
+        '404':
+          description: Equipment not found
+    delete:
+      summary: Delete equipment by ID
+      operationId: deleteEquipment
+      parameters:
+        - name: equipment_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Equipment deleted
+        '404':
+          description: Equipment not found
+
+  /equipment/{equipment_id}/sustainability-parameters:
+    get:
+      summary: Get sustainability parameters for equipment
+      operationId: getEquipmentSustainabilityParameters
+      parameters:
+        - name: equipment_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: parameter_category
+          in: query
+          description: Filter by parameter category
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Sustainability parameters list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SustainabilityParameter'
+    post:
+      summary: Add sustainability parameter to equipment
+      operationId: addEquipmentSustainabilityParameter
+      parameters:
+        - name: equipment_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SustainabilityParameter'
+      responses:
+        '201':
+          description: Sustainability parameter added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SustainabilityParameter'
+
+  /mining-events:
+    get:
+      summary: Get mining events
+      operationId: getMiningEvents
+      parameters:
+        - name: event_category
+          in: query
+          description: Filter by event category
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Mining events list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MiningEvent'
+    post:
+      summary: Create a new mining event
+      operationId: createMiningEvent
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MiningEvent'
+      responses:
+        '201':
+          description: Mining event created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MiningEvent'
+
+  /mining-events/{event_id}:
+    get:
+      summary: Get mining event by ID
+      operationId: getMiningEventById
+      parameters:
+        - name: event_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Mining event details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MiningEvent'
+        '404':
+          description: Mining event not found
+
+  /mining-events/{event_id}/impacts:
+    get:
+      summary: Get impacts for a mining event
+      operationId: getEventImpacts
+      parameters:
+        - name: event_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Event impacts list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EventImpact'
+    post:
+      summary: Add impact to a mining event
+      operationId: addEventImpact
+      parameters:
+        - name: event_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventImpact'
+      responses:
+        '201':
+          description: Event impact added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventImpact'
+
+  /simulations:
+    get:
+      summary: Get all simulation runs
+      operationId: getSimulationRuns
+      responses:
+        '200':
+          description: Simulation runs list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SimulationRun'
+    post:
+      summary: Create a new simulation run
+      operationId: createSimulationRun
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SimulationRun'
+      responses:
+        '201':
+          description: Simulation run created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimulationRun'
+
+  /simulations/{run_id}:
+    get:
+      summary: Get simulation run by ID
+      operationId: getSimulationRunById
+      parameters:
+        - name: run_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Simulation run details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimulationRun'
+        '404':
+          description: Simulation run not found
+
+  /simulations/{run_id}/events:
+    get:
+      summary: Get events for a simulation run
+      operationId: getSimulationEvents
+      parameters:
+        - name: run_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: simulation_number
+          in: query
+          description: Filter by simulation number
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Simulation events list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SimulationEvent'
+
+  /simulations/{run_id}/results:
+    get:
+      summary: Get results for a simulation run
+      operationId: getSimulationResults
+      parameters:
+        - name: run_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: simulation_number
+          in: query
+          description: Filter by simulation number
+          schema:
+            type: integer
+        - name: metric_name
+          in: query
+          description: Filter by metric name
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Simulation results list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SimulationResult'
+
+  /scenarios:
+    get:
+      summary: Get all scenario definitions
+      operationId: getScenarioDefinitions
+      responses:
+        '200':
+          description: Scenario definitions list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ScenarioDefinition'
+    post:
+      summary: Create a new scenario definition
+      operationId: createScenarioDefinition
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScenarioDefinition'
+      responses:
+        '201':
+          description: Scenario definition created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScenarioDefinition'
+
+  /scenarios/{scenario_id}/events:
+    get:
+      summary: Get events for a scenario
+      operationId: getScenarioEvents
+      parameters:
+        - name: scenario_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Scenario events list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ScenarioEvent'
+    post:
+      summary: Add event to a scenario
+      operationId: addScenarioEvent
+      parameters:
+        - name: scenario_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScenarioEvent'
+      responses:
+        '201':
+          description: Scenario event added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScenarioEvent'
+
+components:
+  schemas:
+    Mine:
+      type: object
+      properties:
+        mine_id:
+          type: integer
+          readOnly: true
+        mine_name:
+          type: string
+        mine_type:
+          type: string
+        ore_type:
+          type: string
+        production_capacity:
+          type: number
+          format: float
+        mine_lifespan_months:
+          type: integer
+        initial_footprint:
+          type: number
+          format: float
+        maximum_footprint:
+          type: number
+          format: float
+        pre_existing_biodiversity:
+          type: number
+          format: float
+        construction_start:
+          type: string
+          format: date-time
+        production_start:
+          type: string
+          format: date-time
+        peak_production:
+          type: string
+          format: date-time
+        closure:
+          type: string
+          format: date-time
+        post_closure_monitoring:
+          type: integer
+      required:
+        - mine_name
+        - mine_type
+        - ore_type
+
+    Equipment:
+      type: object
+      properties:
+        equipment_id:
+          type: integer
+          readOnly: true
+        equipment_name:
+          type: string
+        equipment_type:
+          type: string
+        equipment_start:
+          type: string
+          format: date-time
+        equipment_lifespan_months:
+          type: integer
+      required:
+        - equipment_name
+        - equipment_type
+        - equipment_start
+
+    SustainabilityParameter:
+      type: object
+      properties:
+        param_id:
+          type: integer
+          readOnly: true
+        equipment_id:
+          type: integer
+        parameter_category:
+          type: string
+        parameter_name:
+          type: string
+        parameter_value:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+        - equipment_id
+        - parameter_name
+        - parameter_value
+
+    MiningEvent:
+      type: object
+      properties:
+        event_id:
+          type: integer
+          readOnly: true
+        event_name:
+          type: string
+        event_category:
+          type: string
+        event_description:
+          type: string
+        typical_duration:
+          type: integer
+        duration_variance:
+          type: number
+          format: float
+        prerequisite_events:
+          type: string
+          description: JSON array of prerequisite event IDs
+        mutually_exclusive_events:
+          type: string
+          description: JSON array of mutually exclusive event IDs
+        probability_function:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+        - event_name
+        - event_category
+
+    EventImpact:
+      type: object
+      properties:
+        impact_id:
+          type: integer
+          readOnly: true
+        event_id:
+          type: integer
+        parameter_category:
+          type: string
+        parameter_name:
+          type: string
+        impact_type:
+          type: string
+        impact_mean:
+          type: number
+          format: float
+        impact_std_dev:
+          type: number
+          format: float
+        impact_distribution:
+          type: string
+        recovery_rate_mean:
+          type: number
+          format: float
+        recovery_rate_std_dev:
+          type: number
+          format: float
+        max_recovery_percentage:
+          type: number
+          format: float
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+        - event_id
+        - parameter_name
+        - impact_type
+        - impact_mean
+
+    SimulationRun:
+      type: object
+      properties:
+        run_id:
+          type: integer
+          readOnly: true
+        mine_id:
+          type: integer
+        simulation_name:
+          type: string
+        num_years:
+          type: integer
+        num_simulations:
+          type: integer
+        random_seed:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        description:
+          type: string
+      required:
+        - mine_id
+        - simulation_name
+        - num_years
+        - num_simulations
+
+    SimulationEvent:
+      type: object
+      properties:
+        sim_event_id:
+          type: integer
+          readOnly: true
+        run_id:
+          type: integer
+        event_id:
+          type: integer
+        simulation_number:
+          type: integer
+        start_year:
+          type: integer
+        end_year:
+          type: integer
+        actual_impact_values:
+          type: string
+          description: JSON object containing actual impact values
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+        - run_id
+        - event_id
+        - simulation_number
+        - start_year
+
+    SimulationResult:
+      type: object
+      properties:
+        result_id:
+          type: integer
+          readOnly: true
+        run_id:
+          type: integer
+        datetime:
+          type: string
+          format: date-time
+        simulation_number:
+          type: integer
+        metric_name:
+          type: string
+        metric_value:
+          type: number
+          format: float
+      required:
+        - run_id
+        - simulation_number
+        - metric_name
+        - metric_value
+
+    ScenarioDefinition:
+      type: object
+      properties:
+        scenario_id:
+          type: integer
+          readOnly: true
+        scenario_name:
+          type: string
+        scenario_description:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+        - scenario_name
+
+    ScenarioEvent:
+      type: object
+      properties:
+        scenario_event_id:
+          type: integer
+          readOnly: true
+        scenario_id:
+          type: integer
+        event_id:
+          type: integer
+        start:
+          type: string
+          format: date-time
+        probability_override:
+          type: number
+          format: float
+        event_parameters:
+          type: string
+          description: JSON object containing event parameters
+      required:
+        - scenario_id
+        - event_id
