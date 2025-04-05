@@ -38,8 +38,9 @@ class Mine(Base):
     post_closure_monitoring = Column(Integer)
 
     # Relationships
-    equipment = relationship("Equipment", back_populates="mine")
+    parameters = relationship("SustainabilityParameter", back_populates="mine")
     simulation_runs = relationship("SimulationRun", back_populates="mine")
+    machinery = relationship("MachineryInstance", back_populates="mine")
 
 
 class SustainabilityParameter(Base):
@@ -54,7 +55,7 @@ class SustainabilityParameter(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
-    equipment = relationship("Equipment", back_populates="parameters")
+    mine = relationship("Mine", back_populates="parameters")
 
 
 class MiningEvent(Base):
