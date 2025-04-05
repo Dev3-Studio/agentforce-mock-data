@@ -186,7 +186,7 @@ The `MachinerySimulationResult` model stores results of machinery simulations.
 | operational_efficiency | FLOAT | Operational efficiency (0-1) | 0.92 |
 
 
-# Examples
+# Sustainability Examples
 
 ## Sustainability Parameters Examples
 
