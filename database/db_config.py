@@ -4,7 +4,7 @@ import logging
 import os
 from datetime import datetime
 
-from sqlalchemy import create_engine, inspect
+from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 from database.models import Base
@@ -252,15 +252,15 @@ class DatabaseConnector:
             # Execute DROP TABLE statements
             with self.engine.begin() as connection:
                 # Disable foreign key constraints
-                connection.execute("PRAGMA foreign_keys = OFF")
+                connection.execute(text("PRAGMA foreign_keys = OFF"))
 
                 # Drop each table
                 for table_name in table_names:
-                    connection.execute(f"DROP TABLE IF EXISTS {table_name}")
+                    connection.execute(text(f"DROP TABLE IF EXISTS {table_name}"))
                     self.logger.info(f"Dropped table: {table_name}")
 
                 # Re-enable foreign key constraints
-                connection.execute("PRAGMA foreign_keys = ON")
+                connection.execute(text("PRAGMA foreign_keys = ON"))
 
             # Verify tables were dropped
             inspector = inspect(self.engine)
