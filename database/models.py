@@ -1,4 +1,4 @@
-# DataBase Models
+# models.py - SQLAlchemy database models
 
 from datetime import datetime
 
@@ -23,9 +23,9 @@ class Mine(Base):
     __tablename__ = "mines"
 
     mine_id = Column(Integer, primary_key=True)
-    mine_name = Column(String, nullable=False)
-    mine_type = Column(String, nullable=False)
-    ore_type = Column(String, nullable=False)
+    mine_name = Column(String(255), nullable=False)
+    mine_type = Column(String(100), nullable=False)
+    ore_type = Column(String(100), nullable=False)
     production_capacity = Column(Float)
     mine_lifespan_months = Column(Integer)
     initial_footprint = Column(Float)
@@ -40,6 +40,22 @@ class Mine(Base):
     # Relationships
     equipment = relationship("Equipment", back_populates="mine")
     simulation_runs = relationship("SimulationRun", back_populates="mine")
+    machinery = relationship("MachineryInstance", back_populates="mine")
+
+
+class Equipment(Base):
+
+    __tablename__ = "equipment"
+
+    equipment_id = Column(Integer, primary_key=True)
+    mine_id = Column(Integer, ForeignKey("mines.mine_id"))
+    equipment_name = Column(String(255))
+    equipment_type = Column(String(100))
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    # Relationships
+    mine = relationship("Mine", back_populates="equipment")
+    parameters = relationship("SustainabilityParameter", back_populates="equipment")
 
 
 class SustainabilityParameter(Base):
@@ -48,8 +64,8 @@ class SustainabilityParameter(Base):
 
     param_id = Column(Integer, primary_key=True)
     equipment_id = Column(Integer, ForeignKey("equipment.equipment_id"))
-    parameter_category = Column(String)
-    parameter_name = Column(String)
+    parameter_category = Column(String(100))
+    parameter_name = Column(String(255))
     parameter_value = Column(Text)
     created_at = Column(DateTime, default=datetime.utcnow)
 
@@ -62,8 +78,8 @@ class MiningEvent(Base):
     __tablename__ = "mining_events"
 
     event_id = Column(Integer, primary_key=True)
-    event_name = Column(String)
-    event_category = Column(String)
+    event_name = Column(String(255))
+    event_category = Column(String(100))
     event_description = Column(Text)
     typical_duration = Column(Integer)
     duration_variance = Column(Float)
@@ -84,12 +100,12 @@ class EventImpact(Base):
 
     impact_id = Column(Integer, primary_key=True)
     event_id = Column(Integer, ForeignKey("mining_events.event_id"))
-    parameter_category = Column(String)
-    parameter_name = Column(String)
-    impact_type = Column(String)
+    parameter_category = Column(String(100))
+    parameter_name = Column(String(255))
+    impact_type = Column(String(50))
     impact_mean = Column(Float)
     impact_std_dev = Column(Float)
-    impact_distribution = Column(String)
+    impact_distribution = Column(String(50))
     recovery_rate_mean = Column(Float)
     recovery_rate_std_dev = Column(Float)
     max_recovery_percentage = Column(Float)
@@ -105,7 +121,7 @@ class SimulationRun(Base):
 
     run_id = Column(Integer, primary_key=True)
     mine_id = Column(Integer, ForeignKey("mines.mine_id"))
-    simulation_name = Column(String)
+    simulation_name = Column(String(255))
     num_years = Column(Integer)
     num_simulations = Column(Integer)
     random_seed = Column(Integer)
@@ -144,7 +160,7 @@ class SimulationResult(Base):
     run_id = Column(Integer, ForeignKey("simulation_runs.run_id"))
     datetime = Column(DateTime)
     simulation_number = Column(Integer)
-    metric_name = Column(String)
+    metric_name = Column(String(255))
     metric_value = Column(Float)
 
     # Relationships
@@ -156,7 +172,7 @@ class ScenarioDefinition(Base):
     __tablename__ = "scenario_definitions"
 
     scenario_id = Column(Integer, primary_key=True)
-    scenario_name = Column(String)
+    scenario_name = Column(String(255))
     scenario_description = Column(Text)
     created_at = Column(DateTime, default=datetime.utcnow)
 
@@ -188,10 +204,10 @@ class MachineryType(Base):
     __tablename__ = "machinery_types"
 
     type_id = Column(Integer, primary_key=True)
-    type_name = Column(String, nullable=False)
-    category = Column(String, nullable=False)  # Excavation, Hauling, Processing, etc.
+    type_name = Column(String(255), nullable=False)
+    category = Column(String(100), nullable=False)  # Excavation, Hauling, Processing, etc.
     description = Column(Text)
-    fuel_type = Column(String)  # Diesel, Electric, Hybrid, etc.
+    fuel_type = Column(String(50))  # Diesel, Electric, Hybrid, etc.
     emissions_factor = Column(Float)  # CO2e per hour of operation
     energy_consumption = Column(Float)  # Energy units per hour
     water_usage = Column(Float)  # Water usage per hour (if applicable)
@@ -213,8 +229,8 @@ class MachineryInstance(Base):
     instance_id = Column(Integer, primary_key=True)
     mine_id = Column(Integer, ForeignKey("mines.mine_id"), nullable=False)
     type_id = Column(Integer, ForeignKey("machinery_types.type_id"), nullable=False)
-    instance_name = Column(String, nullable=False)
-    operational_status = Column(String)  # Active, Maintenance, Retired, etc.
+    instance_name = Column(String(255), nullable=False)
+    operational_status = Column(String(50))  # Active, Maintenance, Retired, etc.
     efficiency_factor = Column(
         Float, default=1.0
     )  # Relative to typical (1.0 = typical)
