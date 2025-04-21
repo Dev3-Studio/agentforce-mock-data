@@ -48,6 +48,7 @@ class SustainabilityParameter(Base):
     __tablename__ = "sustainability_parameters"
 
     param_id = Column(Integer, primary_key=True)
+    mine_id = Column(Integer, ForeignKey("mines.mine_id"), nullable=False)
     parameter_category = Column(String)
     parameter_name = Column(String)
     parameter_value = Column(Text)
