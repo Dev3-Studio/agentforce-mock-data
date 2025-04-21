@@ -2,6 +2,8 @@ import json
 from typing import List, Any
 import requests
 from sqlalchemy.inspection import inspect
+import os
+from dotenv import load_dotenv
 
 
 class SalesforceIngestor:
@@ -23,6 +25,7 @@ class SalesforceIngestor:
             'username': self.username,
             'password': self.password
         }
+        print(data)
         response = requests.post(self.auth_url, data=data)
         response.raise_for_status()
         auth_data = response.json()
@@ -81,19 +84,12 @@ class SalesforceIngestor:
             raise e
 
 # Example usage:
-# if __name__ == "__main__":
-
-    # ingestor = SalesforceIngestor(
-    #     client_id='your-client-id',
-    #     client_secret='your-client-secret',
-    #     username='your-username',
-    #     password='your-password+security_token',
-    #     auth_url='https://login.salesforce.com/services/oauth2/token'
-    # )
-    #
-    #
-    # mines = session.query(Mine).all()
-    # ingestor.ingest("mine_stream", mines, depth=2)
-    #
-    # events = session.query(MiningEvent).all()
-    # ingestor.ingest("event_stream", events, depth=2)
+if __name__ == "__main__":
+    load_dotenv()
+    ingestor = SalesforceIngestor(
+        client_id=os.getenv('CONSUMER_KEY'),
+        client_secret=os.getenv('CONSUMER_SECRET'),
+        username=os.getenv('SF_USERNAME'),
+        password=os.getenv('SF_PASSWORD'),
+        auth_url='https://login.salesforce.com/services/oauth2/token'
+    )
