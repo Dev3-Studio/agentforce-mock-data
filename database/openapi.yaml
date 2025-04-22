@@ -1,0 +1,449 @@
+openapi: 3.0.0
+info:
+  title: Mining Simulation Data Models API (Salesforce Compatible)
+  version: '1.1'
+  description: OpenAPI schema describing the data models for the mining simulation project, flattened for compatibility with systems expecting primitive types per field (e.g., Salesforce Data Cloud). Relationships are represented by foreign key IDs.
+components:
+  schemas:
+    Mine:
+      type: object
+      description: Represents a single mining site.
+      properties:
+        mine_id:
+          type: integer
+          description: Primary key for the mine.
+        mine_name:
+          type: string
+          description: Name of the mine.
+        mine_type:
+          type: string
+          description: Type of the mine (e.g., Open Pit, Underground).
+        ore_type:
+          type: string
+          description: Primary ore extracted.
+        production_capacity:
+          type: number
+          format: float
+          description: Production capacity (e.g., tons/day).
+        mine_lifespan_months:
+          type: integer
+          description: Expected operational lifespan in months.
+        initial_footprint:
+          type: number
+          format: float
+          description: Initial land area footprint.
+        maximum_footprint:
+          type: number
+          format: float
+          description: Maximum projected land area footprint.
+        pre_existing_biodiversity:
+          type: number
+          format: float
+          description: Index or measure of biodiversity before mining.
+        construction_start:
+          type: string
+          format: date-time
+          description: Date construction began.
+        production_start:
+          type: string
+          format: date-time
+          description: Date production began.
+        peak_production:
+          type: string
+          format: date-time
+          description: Date peak production is expected.
+        closure:
+          type: string
+          format: date-time
+          description: Planned closure date.
+        post_closure_monitoring:
+          type: integer
+          description: Duration of post-closure monitoring in years.
+      required:
+        - mine_id
+        - mine_name
+        - mine_type
+        - ore_type
+
+    SustainabilityParameter:
+      type: object
+      description: Represents a specific sustainability metric recorded for a mine at a point in time.
+      properties:
+        param_id:
+          type: integer
+          description: Primary key for the parameter record.
+        mine_id:
+          type: integer
+          description: Foreign key linking to the Mine.
+        parameter_category:
+          type: string
+          description: Category of the parameter (e.g., emissions, water).
+        parameter_name:
+          type: string
+          description: Specific name of the parameter (e.g., CO2, pH).
+        parameter_value:
+          type: string # Stored as text, could be numeric or categorical depending on parameter_name
+          description: Value of the parameter.
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the record was created.
+      required:
+        - param_id
+        - mine_id
+
+    MiningEvent:
+      type: object
+      description: Defines a type of event that can occur during mining operations.
+      properties:
+        event_id:
+          type: integer
+          description: Primary key for the event type.
+        event_name:
+          type: string
+          description: Name of the event type.
+        event_category:
+          type: string
+          description: Category of the event (e.g., Operational, Environmental, Safety).
+        event_description:
+          type: string
+          description: Description of the event type.
+        typical_duration:
+          type: integer
+          description: Typical duration in units (e.g., days, months).
+        duration_variance:
+          type: number
+          format: float
+          description: Variance factor for the duration.
+        prerequisite_events:
+          type: string
+          description: JSON array of prerequisite event IDs (represented as string).
+        mutually_exclusive_events:
+          type: string
+          description: JSON array of mutually exclusive event IDs (represented as string).
+        probability_function:
+          type: string
+          description: Definition or reference to a probability function (represented as string).
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the event type definition was created.
+      required:
+        - event_id
+
+    EventImpact:
+      type: object
+      description: Defines the potential impact of a MiningEvent on a specific parameter.
+      properties:
+        impact_id:
+          type: integer
+          description: Primary key for the impact definition.
+        event_id:
+          type: integer
+          description: Foreign key linking to the MiningEvent.
+        parameter_category:
+          type: string
+          description: Category of the parameter affected.
+        parameter_name:
+          type: string
+          description: Specific name of the parameter affected.
+        impact_type:
+          type: string
+          description: Type of impact (e.g., increase, decrease, fixed).
+        impact_mean:
+          type: number
+          format: float
+          description: Mean value of the impact.
+        impact_std_dev:
+          type: number
+          format: float
+          description: Standard deviation of the impact.
+        impact_distribution:
+          type: string
+          description: Distribution type for impact variability (e.g., normal, uniform).
+        recovery_rate_mean:
+          type: number
+          format: float
+          description: Mean rate of recovery after the impact.
+        recovery_rate_std_dev:
+          type: number
+          format: float
+          description: Standard deviation of the recovery rate.
+        max_recovery_percentage:
+          type: number
+          format: float
+          description: Maximum percentage of recovery possible.
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the impact definition was created.
+      required:
+        - impact_id
+        - event_id
+
+    SimulationRun:
+      type: object
+      description: Defines a specific execution run of the simulation.
+      properties:
+        run_id:
+          type: integer
+          description: Primary key for the simulation run.
+        mine_id:
+          type: integer
+          description: Foreign key linking to the Mine being simulated.
+        simulation_name:
+          type: string
+          description: User-defined name for the simulation run.
+        num_years:
+          type: integer
+          description: Number of years simulated in this run.
+        num_simulations:
+          type: integer
+          description: Number of simulation iterations/traces within this run.
+        random_seed:
+          type: integer
+          description: Random seed used for reproducibility.
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the simulation run was initiated.
+        description:
+          type: string
+          description: Optional description of the simulation run.
+      required:
+        - run_id
+        - mine_id # Assuming a run must be associated with a mine
+
+    SimulationEvent:
+      type: object
+      description: Records an occurrence of a MiningEvent within a specific simulation run trace.
+      properties:
+        sim_event_id:
+          type: integer
+          description: Primary key for this specific event occurrence.
+        run_id:
+          type: integer
+          description: Foreign key linking to the SimulationRun.
+        event_id:
+          type: integer
+          description: Foreign key linking to the MiningEvent type that occurred.
+        simulation_number:
+          type: integer
+          description: Identifier for the specific simulation trace (1 to num_simulations).
+        start_year:
+          type: integer
+          description: Simulation year the event started.
+        end_year:
+          type: integer
+          description: Simulation year the event ended.
+        actual_impact_values:
+          type: string
+          description: JSON object storing actual impact values realized (represented as string).
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when this event occurrence was recorded.
+      required:
+        - sim_event_id
+        - run_id
+        - event_id
+
+    SimulationResult:
+      type: object
+      description: Records a generic, aggregated result or KPI from a simulation run trace at a point in time.
+      properties:
+        result_id:
+          type: integer
+          description: Primary key for the result record.
+        run_id:
+          type: integer
+          description: Foreign key linking to the SimulationRun.
+        datetime: # Note: 'datetime' might be a reserved word in some systems, consider renaming if issues arise.
+          type: string
+          format: date-time
+          description: Timestamp for the result metric.
+        simulation_number:
+          type: integer
+          description: Identifier for the specific simulation trace.
+        metric_name:
+          type: string
+          description: Name of the metric being recorded (e.g., 'Total CO2 Emissions Year 1').
+        metric_value:
+          type: number
+          format: float
+          description: Value of the metric.
+      required:
+        - result_id
+        - run_id
+
+    ScenarioDefinition:
+      type: object
+      description: Defines a specific scenario composed of scheduled or modified events.
+      properties:
+        scenario_id:
+          type: integer
+          description: Primary key for the scenario definition.
+        scenario_name:
+          type: string
+          description: Name of the scenario.
+        scenario_description:
+          type: string
+          description: Description of the scenario.
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the scenario was defined.
+      required:
+        - scenario_id
+
+    ScenarioEvent:
+      type: object
+      description: Defines a specific event occurrence within a ScenarioDefinition.
+      properties:
+        scenario_event_id:
+          type: integer
+          description: Primary key for this event within the scenario.
+        scenario_id:
+          type: integer
+          description: Foreign key linking to the ScenarioDefinition.
+        event_id:
+          type: integer
+          description: Foreign key linking to the MiningEvent type scheduled.
+        start:
+          type: string
+          format: date-time
+          description: Scheduled start time/date for the event in the scenario.
+        probability_override:
+          type: number
+          format: float
+          description: Override probability for this event in the scenario.
+        event_parameters:
+          type: string
+          description: JSON object for specific parameters modifying the event (represented as string).
+      required:
+        - scenario_event_id
+        - scenario_id
+        - event_id
+
+    MachineryType:
+      type: object
+      description: Defines a class or type of machinery used in operations.
+      properties:
+        type_id:
+          type: integer
+          description: Primary key for the machinery type.
+        type_name:
+          type: string
+          description: Name of the machinery type (e.g., 'Excavator XL').
+        category:
+          type: string
+          description: Functional category (e.g., Excavation, Hauling, Processing).
+        description:
+          type: string
+          description: Description of the machinery type.
+        fuel_type:
+          type: string
+          description: Primary fuel source (e.g., Diesel, Electric, Hybrid).
+        emissions_factor:
+          type: number
+          format: float
+          description: Emissions (e.g., CO2e) per unit of operation (e.g., per hour).
+        energy_consumption:
+          type: number
+          format: float
+          description: Energy units (e.g., kWh) consumed per unit of operation.
+        water_usage:
+          type: number
+          format: float
+          description: Water units (e.g., Liters) consumed per unit of operation (if applicable).
+        maintenance_interval:
+          type: integer
+          description: Recommended operating hours between maintenance cycles.
+      required:
+        - type_id
+        - type_name
+        - category
+
+    MachineryInstance:
+      type: object
+      description: Represents a specific, individual piece of machinery owned/operated by a mine.
+      properties:
+        instance_id:
+          type: integer
+          description: Primary key for the specific machinery instance.
+        mine_id:
+          type: integer
+          description: Foreign key linking to the Mine that owns/operates this instance.
+        type_id:
+          type: integer
+          description: Foreign key linking to the MachineryType definition.
+        instance_name:
+          type: string
+          description: Unique name or identifier for this instance (e.g., 'Excavator XL #1').
+        operational_status:
+          type: string
+          description: Current status (e.g., Active, Maintenance, Retired).
+        efficiency_factor:
+          type: number
+          format: float
+          description: Factor representing deviation from standard efficiency (1.0 = standard).
+        total_operating_hours:
+          type: number
+          format: float
+          description: Cumulative operating hours for this instance.
+      required:
+        - instance_id
+        - mine_id
+        - type_id
+        - instance_name
+
+    MachinerySimulationResult:
+      type: object
+      description: Records the simulated operational results for a specific MachineryInstance during a SimulationRun trace at a point in time.
+      properties:
+        result_id:
+          type: integer
+          description: Primary key for this machinery result record.
+        run_id:
+          type: integer
+          description: Foreign key linking to the SimulationRun.
+        instance_id:
+          type: integer
+          description: Foreign key linking to the MachineryInstance.
+        simulation_number:
+          type: integer
+          description: Identifier for the specific simulation trace.
+        simulation_date:
+          type: string
+          format: date-time
+          description: Timestamp for this specific result data point.
+        hours_operated:
+          type: number
+          format: float
+          description: Simulated hours operated during the time period ending at simulation_date.
+        fuel_consumed:
+          type: number
+          format: float
+          description: Simulated fuel consumed during the time period.
+        emissions_produced:
+          type: number
+          format: float
+          description: Simulated emissions produced during the time period.
+        energy_consumed:
+          type: number
+          format: float
+          description: Simulated energy consumed during the time period.
+        water_used:
+          type: number
+          format: float
+          description: Simulated water used during the time period.
+        operational_efficiency:
+          type: number
+          format: float
+          description: Simulated operational efficiency during the time period.
+      required:
+        - result_id
+        - run_id
+        - instance_id
+        - simulation_number
+        - simulation_date

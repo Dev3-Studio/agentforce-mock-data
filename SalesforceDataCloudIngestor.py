@@ -66,7 +66,7 @@ class SalesforceIngestor:
         """
         Send serialized model data to the specified Salesforce Data Cloud stream
         """
-        url = f"{self.instance_url}/services/data/v1/datalake/ingest/{data_stream_api_name}"
+        url = f"{self.instance_url}/services/data/v60/datalake/ingest/{data_stream_api_name}"
         headers = {
             'Authorization': f'Bearer {self.access_token}',
             'Content-Type': 'application/json'

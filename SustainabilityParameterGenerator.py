@@ -4,11 +4,16 @@ import numpy as np
 import pandas as pd
 from abc import ABC, abstractmethod
 from typing import List, Dict, Any, Optional
+import os # Added for env variables
+from dotenv import load_dotenv # Added for env variables
 
 # SQLAlchemy imports
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from database.models import Base, Mine, MachineryType, MachineryInstance, SimulationRun, MachinerySimulationResult
+
+# Salesforce Ingestor import
+from SalesforceDataCloudIngestor import SalesforceIngestor
 
 
 class DistributionStrategy(ABC):
@@ -334,6 +339,11 @@ class SustainabilityParameterGenerator:
 
 # Example usage
 if __name__ == "__main__":
+    # --- Environment Setup ---
+    load_dotenv() # Load environment variables from .env file
+    # Ensure Salesforce credentials are set in your environment:
+    # CONSUMER_KEY, CONSUMER_SECRET, SF_USERNAME, SF_PASSWORD
+
     DB_FILE = "simulation_data.db"
     DATABASE_URL = f"sqlite:///{DB_FILE}"
 
@@ -349,6 +359,13 @@ if __name__ == "__main__":
     # --- Data Generation ---
     generator = SustainabilityParameterGenerator()
 
+    # Keep track of generated objects to ingest later
+    generated_mine = None
+    generated_machinery_types = []
+    generated_machinery_instances = []
+    generated_simulation_run = None
+    generated_results = []
+
     # 1. Create a Mine
     mine_data = {
         "mine_name": "GigaMine Alpha",
@@ -361,60 +378,110 @@ if __name__ == "__main__":
         "closure": datetime.datetime(2044, 1, 1),
     }
     try:
-        mine = generator.generate_mine(session, **mine_data)
+        generated_mine = generator.generate_mine(session, **mine_data)
         session.flush() # Get the mine_id
-        print(f"Created Mine: {mine.mine_name} (ID: {mine.mine_id})")
+        print(f"Created Mine: {generated_mine.mine_name} (ID: {generated_mine.mine_id})")
 
         # 2. Create Machinery Types
         machinery_types_data = [
-            {"type_name": "Excavator XL", "category": "Excavation", "fuel_type": "Diesel", "emissions_factor": 150.5, "energy_consumption": 0}, # energy_consumption 0 for diesel?
+            {"type_name": "Excavator XL", "category": "Excavation", "fuel_type": "Diesel", "emissions_factor": 150.5, "energy_consumption": 0},
             {"type_name": "Haul Truck HT500", "category": "Hauling", "fuel_type": "Diesel", "emissions_factor": 210.0, "energy_consumption": 0},
-            {"type_name": "Electric Drill ED-1", "category": "Drilling", "fuel_type": "Electric", "emissions_factor": 5.0, "energy_consumption": 80.0}, # kWh/hr
-            {"type_name": "Water Pump WP-H", "category": "Processing", "fuel_type": "Electric", "emissions_factor": 2.0, "energy_consumption": 50.0, "water_usage": 5000.0 } # L/hr
+            {"type_name": "Electric Drill ED-1", "category": "Drilling", "fuel_type": "Electric", "emissions_factor": 5.0, "energy_consumption": 80.0},
+            {"type_name": "Water Pump WP-H", "category": "Processing", "fuel_type": "Electric", "emissions_factor": 2.0, "energy_consumption": 50.0, "water_usage": 5000.0 }
         ]
-        machinery_types = generator.generate_machinery_types(session, machinery_types_data)
+        generated_machinery_types = generator.generate_machinery_types(session, machinery_types_data)
         session.flush()
-        print(f"Created {len(machinery_types)} Machinery Types: {[mt.type_name for mt in machinery_types]}")
+        print(f"Created {len(generated_machinery_types)} Machinery Types: {[mt.type_name for mt in generated_machinery_types]}")
 
         # 3. Create Machinery Instances for the Mine
-        # Create 2 of each type for this mine
-        machinery_instances = generator.generate_machinery_instances(session, mine, machinery_types, num_instances_per_type=2)
-        print(f"Created {len(machinery_instances)} Machinery Instances for Mine ID {mine.mine_id}")
+        generated_machinery_instances = generator.generate_machinery_instances(
+            session, generated_mine, generated_machinery_types, num_instances_per_type=2
+        )
+        print(f"Created {len(generated_machinery_instances)} Machinery Instances for Mine ID {generated_mine.mine_id}")
 
         # 4. Create a Simulation Run
         sim_run_data = {
             "simulation_name": "Baseline Operation 2024",
-            "num_years": 1, # For this example run
-            "num_simulations": 1, # Number of simulation traces
+            "num_years": 1,
+            "num_simulations": 1,
             "random_seed": 123,
             "description": "Daily operational parameters for the first year."
         }
-        simulation_run = generator.create_simulation_run(session, mine, **sim_run_data)
-        print(f"Created Simulation Run: {simulation_run.simulation_name} (ID: {simulation_run.run_id})")
+        generated_simulation_run = generator.create_simulation_run(session, generated_mine, **sim_run_data)
+        print(f"Created Simulation Run: {generated_simulation_run.simulation_name} (ID: {generated_simulation_run.run_id})")
 
         # 5. Generate Machinery Simulation Results
         start_date = datetime.datetime(2024, 1, 1)
-        end_date = datetime.datetime(2024, 12, 31) # Full year
+        end_date = datetime.datetime(2024, 12, 31)
         generator.generate_machinery_simulation_results(
             session=session,
-            run=simulation_run,
-            machinery_instances=machinery_instances,
+            run=generated_simulation_run,
+            machinery_instances=generated_machinery_instances,
             start_date=start_date,
             end_date=end_date,
-            freq='D', # Daily data
-            categories=["emissions", "energy", "water"], # Focus on mappable categories
-            anomaly_percentage=0.02, # Add 2% anomalies
-            anomaly_factor=10.0 # Anomalies are 10x or 1/10th
+            freq='D',
+            categories=["emissions", "energy", "water"],
+            anomaly_percentage=0.02,
+            anomaly_factor=10.0
         )
 
-        # --- Commit Changes ---
+        # --- Commit Changes to Local DB ---
         session.commit()
-        print("Successfully generated data and committed to the database.")
+        print("Successfully generated data and committed to the local database.")
+
+        # --- Salesforce Data Cloud Ingestion ---
+        print("\nAttempting to ingest data into Salesforce Data Cloud...")
+        try:
+            ingestor = SalesforceIngestor(
+                client_id=os.getenv('CONSUMER_KEY'),
+                client_secret=os.getenv('CONSUMER_SECRET'),
+                username=os.getenv('SF_USERNAME'),
+                password=os.getenv('SF_PASSWORD'),
+                auth_url='https://login.salesforce.com/services/oauth2/token'
+            )
+
+            MINE_STREAM_API_NAME = "Mock_Data_Mine" 
+            MACHINERY_TYPE_STREAM_API_NAME = "Mock_Data_MachineryType"
+            MACHINERY_INSTANCE_STREAM_API_NAME = "Mock_Data_MachineryInstance"
+            SIMULATION_RESULT_STREAM_API_NAME = "Mock_Data_SimulationResult"
+
+            # Ingest Mine (including related machinery instances, depth=1)
+            if generated_mine:
+                ingestor.ingest(MINE_STREAM_API_NAME, [generated_mine], depth=1)
+
+            # Ingest Machinery Types (simple objects, depth=0)
+            if generated_machinery_types:
+                ingestor.ingest(MACHINERY_TYPE_STREAM_API_NAME, generated_machinery_types, depth=0)
+
+            # Ingest Machinery Instances (including type info, depth=1)
+            if generated_machinery_instances:
+                ingestor.ingest(MACHINERY_INSTANCE_STREAM_API_NAME, generated_machinery_instances, depth=1)
+
+            # Query and Ingest Simulation Results
+            if generated_simulation_run:
+                # Query results AFTER commit ensures they have IDs and are persisted
+                # Use the session attached to the objects if still valid, or create a new one if needed.
+                # Re-querying might be safer if the session state is complex.
+                print(f"Querying simulation results for Run ID: {generated_simulation_run.run_id}...")
+                generated_results = session.query(MachinerySimulationResult)\
+                                           .filter(MachinerySimulationResult.run_id == generated_simulation_run.run_id)\
+                                           .all()
+                print(f"Found {len(generated_results)} simulation result records.")
+                if generated_results:
+                    # Ingest results (depth=0, as they don't need deep relationships here)
+                    # Consider batching if 'generated_results' is very large
+                    ingestor.ingest(SIMULATION_RESULT_STREAM_API_NAME, generated_results, depth=0)
+
+            print("Salesforce Data Cloud ingestion process completed.")
+
+        except Exception as sf_error:
+            print(f"Salesforce Data Cloud ingestion failed: {sf_error}")
+            # Decide if this should be a critical error for the script
 
         # --- (Optional) Query and Save to CSV ---
-        # Example: Query results for the first machine and save
-        if machinery_instances:
-            first_instance_id = machinery_instances[0].instance_id
+        if generated_machinery_instances:
+            first_instance_id = generated_machinery_instances[0].instance_id
+            # Use the same session or create a new one if the old one was closed
             results_df = pd.read_sql(
                 session.query(MachinerySimulationResult)
                        .filter(MachinerySimulationResult.instance_id == first_instance_id)
@@ -426,7 +493,7 @@ if __name__ == "__main__":
             # generator.save_to_csv(results_df, f"machinery_{first_instance_id}_results.csv")
 
     except Exception as e:
-        print(f"An error occurred: {e}")
+        print(f"An error occurred during data generation or DB commit: {e}")
         session.rollback() # Roll back changes on error
     finally:
         session.close() # Close the session
