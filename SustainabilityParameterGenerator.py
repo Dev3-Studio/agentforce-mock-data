@@ -447,15 +447,15 @@ if __name__ == "__main__":
 
             # Ingest Mine (including related machinery instances, depth=1)
             if generated_mine:
-                ingestor.ingest(MINE_STREAM_API_NAME, [generated_mine], depth=1)
+                ingestor.ingest("Mine", [generated_mine], depth=1)
 
             # Ingest Machinery Types (simple objects, depth=0)
             if generated_machinery_types:
-                ingestor.ingest(MACHINERY_TYPE_STREAM_API_NAME, generated_machinery_types, depth=0)
+                ingestor.ingest("MachineryType", generated_machinery_types, depth=0)
 
             # Ingest Machinery Instances (including type info, depth=1)
             if generated_machinery_instances:
-                ingestor.ingest(MACHINERY_INSTANCE_STREAM_API_NAME, generated_machinery_instances, depth=1)
+                ingestor.ingest("MachineryInstance", generated_machinery_instances, depth=1)
 
             # Query and Ingest Simulation Results
             if generated_simulation_run:
